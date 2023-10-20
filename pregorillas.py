@@ -70,8 +70,9 @@ def findAngle(pos):
     x_pos = int(pos[0])
     y_pos = int(pos[1])
 
-    print(sX)
-    print(sY)
+    print(sX, x_pos)
+    print(sY, y_pos)
+
 
     try:
         angle = math.atan((sY - y_pos) / (sX - x_pos))
@@ -88,6 +89,44 @@ def findAngle(pos):
         angle = (math.pi * 2) - angle
 
     return angle
+
+def cpuPower():
+    player_x = player.rect.center[0]
+    player_y = player.rect.center[1]
+    cX = BombObject.rect.x
+    cY = BombObject.rect.y
+    cpupower = (((9.8*((cX - player_x) ** 2) ** 0.5)) ** 0.5)
+    print('bomb x bomb y =', cX, cY)
+    print('bombx - player x', (cX - player_x))
+    print('player rect top =', player.rect.top)
+    print('player rect center =', player.rect.center)
+
+    return cpupower
+
+def cpuAngle():
+    cX = BombObject.rect.x
+    cY = BombObject.rect.y
+
+    try:
+        cpuangle = math.atan((cpuPower() ** 2)/(9.8 * (cX - player.rect.x)))
+    except:
+        cpuangle = math.pi / 2
+
+    if player.rect.top < cY and player.rect.x > cX:
+        cpuangle = abs(cpuangle)
+    elif player.rect.top < cY and player.rect.x < cX:
+        cpuangle = math.pi - cpuangle
+    elif player.rect.top > cY and player.rect.x < cX:
+        cpuangle = math.pi + abs(cpuangle)
+    elif player.rect.top > cY and player.rect.x > cX:
+        cpuangle = (math.pi * 2) - cpuangle
+    return cpuangle
+
+def rangefunction(power, angle):
+    range = (power ** 2) * (math.sin(2 * angle)) / 9.81
+    print('range =', range)
+
+
 
 
 # Groups
@@ -121,29 +160,33 @@ def collision_mech():
         banana = False
         bomb_time = 0
         gorilla_go = 3
+        print('oppcollision', opp_collision)
 
     if player_collision:
         banana = False
         bomb_time = 0
         gorilla_go = 1
+        print('playercollision', player_collision)
 
 
 # Game Loop
 while True:
 
-    if banana and gorilla_go == 2:
-        if BombObject.rect.bottom < 300 and BombObject.rect.right <800 and BombObject.rect.left > 0:
+    if banana:
+        if BombObject.rect.bottom < 300 and BombObject.rect.right < 800 and BombObject.rect.left > 0:
             bomb_time += 1 / 60
             po = BombClass.bombpath(x, y, power, angle, bomb_time)
             # BombObject.px = po[0]
             # BombObject.py = po[1]
             BombObject.rect.x = po[0]
             BombObject.rect.y = po[1]
+
         else:
             banana = False
             bomb_time = 0
             # BombObject.py = 310
             BombObject.rect.y = 280
+
 
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -158,14 +201,18 @@ while True:
                 power = math.sqrt((line[1][1] - line[0][1]) ** 2 + (line[1][0] - line[0][0]) ** 2)
                 angle = findAngle(pos)
                 gorilla_go = 2
-            if banana == False and gorilla_go == 3:
-                x = opponent.rect.left
-                y = opponent.rect.center[1]
-                pos = pygame.mouse.get_pos()
-                banana = True
-                power = 3
-                angle = findAngle(pos)
-                gorilla_go = 2
+                print('player angle, power', angle, power)
+                print(rangefunction(power, angle))
+            # if banana == False and gorilla_go == 3:
+                # x = opponent.rect.left - 35
+                # y = opponent.rect.center[1]
+                # banana = True
+                # power = random.randint(50,100)
+                # angle = random.uniform(1.57, 3.14)
+                # gorilla_go = 2
+                # print(angle, power)
+
+
     line = [(BombObject.rect.right, BombObject.rect.top), pygame.mouse.get_pos()]
 
 
@@ -186,16 +233,28 @@ while True:
         screen.blit(text_surface1, (0, 0))
         pygame.draw.line(screen, (255, 255, 255), line[0], line[1])
 
+
     if gorilla_go == 2:
         BombObject.draw()
         collision_mech()
 
+
     if gorilla_go == 3:
-        BombObject.rect.x = opponent.rect.left
+        BombObject.rect.x = opponent.rect.left - 35
         BombObject.rect.y = opponent.rect.center[1]
+        x = opponent.rect.left - 35
+        y = opponent.rect.center[1]
+        banana = True
+        power = cpuPower()
+        angle = cpuAngle()
+        time.sleep(1.5)
+        gorilla_go = 2
+        print('cpu angle, power', angle, power)
+        print(rangefunction(power, angle))
         text_surface3 = base_font.render('Your Opponent Is Firing.', True, (111, 196, 169))
         screen.blit(text_surface3, (0, 0))
         BombObject.draw()
+
 
 
     pygame.display.update()
