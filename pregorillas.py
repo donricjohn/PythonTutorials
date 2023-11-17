@@ -305,7 +305,7 @@ while True:
         x = opponent.rect.left - 35
         y = opponent.rect.center[1]
         banana = True
-        power = cpurange(power, angle)
+        power = cpuPower()
         angle = cpuAngle()
         time.sleep(1.5)
         gorilla_go = 2
